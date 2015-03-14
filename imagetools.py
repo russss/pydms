@@ -22,14 +22,12 @@ class ImageGroup(object):
         self.images = images
 
     def save_pdf(self, filename):
-        self.log.info("Starting export to file %s", filename)
         processed_images = [self.process(im) for im in self.images]
         img_list = pgmagick.ImageList()
         for image in processed_images:
             img_list.append(gmagick_from_pil(image))
 
-        img_list.writeImages(filename)
-        self.log.info("Finished writing %s.", filename)
+        img_list.writeImages(filename.encode())
 
     def process(self, im):
         return self.enhance(self.resize(self.trim(im), (2000, 2000)))

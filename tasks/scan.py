@@ -2,8 +2,7 @@
 from __future__ import division, absolute_import, print_function, unicode_literals
 import logging
 from time import sleep
-from threading import Thread
-from Queue import Queue
+from task import Task
 from job import Side
 
 side_map = {
@@ -13,19 +12,12 @@ side_map = {
 }
 
 
-class ScanningThread(Thread):
+class ScanningThread(Task):
     def __init__(self, scanner, callback):
         self.log = logging.getLogger(__name__)
         self.scanner = scanner
-        self.callback = callback
-        self.job_queue = Queue()
         self.log.info("Using scanner: %r", self.scanner)
-        super(ScanningThread, self).__init__(name="ScanningThread")
-        self.daemon = True
-
-    def run(self):
-        while True:
-            self.process(self.job_queue.get())
+        super(ScanningThread, self).__init__(name="ScanningThread", callback=callback)
 
     def process(self, job):
         self.log.info("Processing job %r", job)
@@ -33,8 +25,6 @@ class ScanningThread(Thread):
         self.scanner.options['mode'].value = 'Color'
         self.wait_for_page()
         job.images = self.acquire()
-        if self.callback:
-            self.callback(job)
 
     def wait_for_page(self):
         if 'page-loaded' not in self.scanner.options:
@@ -54,6 +44,3 @@ class ScanningThread(Thread):
         except StopIteration:
             self.log.info("Document finished.")
         return session.images
-
-    def submit_job(self, job):
-        self.job_queue.put(job)

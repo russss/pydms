@@ -2,11 +2,14 @@
 import sys
 import os.path
 import logging
+import tempfile
+import shutil
 import pyinsane.abstract as pyinsane
 from pyinsane.rawapi import SaneStatus
 from job import Job, Side
-from scanning_thread import ScanningThread
-from conversion_thread import ConversionThread
+from tasks.scan import ScanningThread
+from tasks.convert import ConversionThread
+from tasks.file import FileThread
 
 
 class PyDMS(object):
@@ -20,13 +23,22 @@ class PyDMS(object):
         except SaneStatus:
             self.log.exception("Unable to connect to scanner")
             sys.exit(1)
-        self.convert_thread = ConversionThread()
+        self.temp_dir = tempfile.mkdtemp(prefix='pydms')
+        self.file_thread = FileThread()
+        self.convert_thread = ConversionThread(self.temp_dir, self.file_thread.submit_job)
         self.scan_thread = ScanningThread(scanner, self.convert_thread.submit_job)
+        self.file_thread.start()
         self.convert_thread.start()
         self.scan_thread.start()
         self.log.info("Running")
 
     def run(self):
+        try:
+            self.run_ui()
+        finally:
+            shutil.rmtree(self.temp_dir)
+
+    def run_ui(self):
         while True:
             job = Job()
             job.filename = os.path.join(self.DESTINATION, raw_input('File Name: '))
@@ -40,5 +52,5 @@ class PyDMS(object):
             print "Starting scan..."
             self.scan_thread.submit_job(job)
 
-logging.basicConfig()
+logging.basicConfig(level=logging.INFO)
 PyDMS().run()

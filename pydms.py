@@ -17,7 +17,7 @@ class PyDMS(object):
 
     def __init__(self):
         self.log = logging.getLogger(__name__)
-        scanner = pyinsane.Scanner(name="epjitsu:libusb:002:012-04c5-11ed-ff-ff")
+        scanner = pyinsane.Scanner(name="epjitsu:libusb:002:021-04c5-11ed-ff-ff")
         try:
             scanner.options
         except SaneStatus:
@@ -52,5 +52,5 @@ class PyDMS(object):
             print "Starting scan..."
             self.scan_thread.submit_job(job)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, filename="pydms.log")
 PyDMS().run()

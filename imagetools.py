@@ -33,7 +33,7 @@ class ImageGroup(object):
         return self.enhance(self.resize(self.trim(im), (2000, 2000)))
 
     def resize(self, im, max_size):
-        ratio = min(max_size[0] / im.size[0], max_size[1] / im.size[1])
+        ratio = max(1, min(max_size[0] / im.size[0], max_size[1] / im.size[1]))
         im.thumbnail(((int(im.size[0] * ratio), int(im.size[1] * ratio))))
         return im
 

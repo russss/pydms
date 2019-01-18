@@ -1,5 +1,3 @@
-# coding=utf-8
-from __future__ import division, absolute_import, print_function, unicode_literals
 import logging
 import random
 import string
@@ -23,11 +21,11 @@ class ConversionThread(Task):
         self.log.info("Processing job %r", job)
         with Timer() as t:
             job.pdf = self.get_pdf_filename()
-            ig = ImageGroup(job.images)
-            ig.save_pdf(job.pdf)
+            job.ig = ImageGroup(job.images)
+            job.ig.process_images()
         self.log.info("Job %r: %i images converted in %s", job, len(job.images), t)
         del job.images
 
     def get_pdf_filename(self):
-        name = ''.join(random.choice(string.letters) for x in range(6)) + '.pdf'
+        name = ''.join(random.choice(string.ascii_letters) for x in range(6)) + '.pdf'
         return os.path.join(self.temp_dir, name)
